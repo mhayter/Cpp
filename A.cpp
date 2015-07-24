@@ -1,19 +1,19 @@
-#include <string>
-#include <iostream>
+#include <bits/stdc++.h>
 using namespace std;
 
 int main() {
-	string line; cin >> line;
-	int index = line.find('|');
-	string p1 = line.substr(0,index);
-	string p2 = line.substr(index+1);
-	string other; cin >> other;
-
-	for(int i=0;i<other.size();i++) {
-		if (p1.size()<p2.size()) p1+=other[i];
-		else p2+=other[i];
+	// your code goes here
+	int n; cin >> n;
+	string s; cin >> s;
+	int myMap[30]={0};
+	for (int i=0;i<n;i++) {
+		myMap[toupper(s[i])-'A']++;
 	}
-	if (p1.size()!=p2.size()) cout << "Impossible" << endl;
-	else cout << p1 << "|" << p2 << endl;
+	bool worked = true;
+	for(int i=0;i<26;i++) {
+		if (myMap[i]==false) worked=false;
+	}
+	if (worked) cout << "YES" << endl;
+	else cout << "NO" << endl;
 	return 0;
 }
