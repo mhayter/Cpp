@@ -2,6 +2,8 @@
 #include <algorithm>
 using namespace std;
 
+//not done
+
 const int SIZE = 110;
 int grid[SIZE][SIZE];
 const int INF = 1000000000;

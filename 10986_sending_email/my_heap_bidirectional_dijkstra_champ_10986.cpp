@@ -8,7 +8,7 @@
 #include <set>
 using namespace std;
 
-//certified #1 7/26/2015 0.036 
+//certified #1 7/26/2015 0.036  0.019s 8/12/2015 resubit
 //only works on bidirectional for now reverse follow edges latter
 //http://www.cs.princeton.edu/courses/archive/spr06/cos423/Handouts/EPP%20shortest%20path%20algorithms.pdf
 

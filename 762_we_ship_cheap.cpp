@@ -6,6 +6,8 @@
 
 using namespace std;
 
+//#12 8/12/2015 0.012s
+
 struct State {
 	State(){}
 	State(int a, int b) :
@@ -84,6 +86,7 @@ void init() {
 }
 int main() {
 	ios_base::sync_with_stdio(false);
+	cin.tie(0);
 	int nRoutes; 
 	cin >> nRoutes;
 	while (true) {
@@ -101,7 +104,7 @@ int main() {
 		if (!bfs()) cout << "No route\n";
 		else {
 			for(int i=0;i+1<path.size();i++) {
-				cout << path[i] << " " << path[i+1] << endl;
+				cout << path[i] << " " << path[i+1] << '\n';
 			}
 		}
 		cin >> nRoutes;

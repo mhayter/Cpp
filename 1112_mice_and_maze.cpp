@@ -5,6 +5,8 @@
 #include <cstring>
 #include <cstdio>
 using namespace std;
+
+//tied #1 0.000s (not unique)
 //Plug and chug dijkstra one based
 class FastInput {
 public:

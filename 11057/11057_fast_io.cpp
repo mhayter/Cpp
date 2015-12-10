@@ -6,6 +6,8 @@
 
 //certified #1 0.002 7/31/2015 crazy good run
 //Library stolen from codechef
+
+// #1 8/12/2015 0.000s
 class FastInput {
 public:
 FastInput() {

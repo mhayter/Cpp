@@ -3,6 +3,8 @@
 #include <vector>
 using namespace std;
 
+//tied #1 121 0.000s 8/12/2015
+
 vector<string>grid;
 bool visited[30][30];
 

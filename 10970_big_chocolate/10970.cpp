@@ -5,6 +5,8 @@ using namespace std;
 
 //tied for #1 7/16/2015 0.002 varies upto 0.007
 
+//#1 8/12/2015 0.000s (faster sever)
+
 class FastInput {
 public:
 FastInput() {

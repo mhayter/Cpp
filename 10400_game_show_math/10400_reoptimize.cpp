@@ -8,6 +8,7 @@
 using namespace std;
 
 //certified #1 but wrong no / check for / zero or integer division
+//#1 8/12/2015 0.003s 
 
 char ops[]="+-*/";
 int operands[110];

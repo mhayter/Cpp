@@ -13,6 +13,7 @@ using namespace std;
 #include <cstdint>
 
 //have no idea runs 0.348s one time upto 0.41s
+//now #5 0.215s
 
 #define SLF
 //#define LLL

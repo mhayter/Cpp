@@ -5,6 +5,7 @@
 using namespace std;
 
 //#5 0.034s (maybe use radix?)
+//#1 0.015s 8/12/2015
 
 class FastInput {
 public:

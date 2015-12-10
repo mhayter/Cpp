@@ -3,6 +3,8 @@
 
 using namespace std;
 
+//tied #1 (129 0.000s doesn't count)
+
 #ifndef __MY_FAST_IO__
 #define __MY_FAST_IO__
 #include <cstdio>

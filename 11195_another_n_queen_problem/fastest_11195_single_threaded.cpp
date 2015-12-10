@@ -6,6 +6,9 @@
 // Time Limit   : .000s
 // Description  : 
 //============================================================================
+
+//#2 0.399s
+
 #include <algorithm>
 #include <bitset>
 #include <cctype>

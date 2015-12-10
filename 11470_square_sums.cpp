@@ -1,6 +1,8 @@
 #include <iostream>
 using namespace std;
 
+//#1 tied (206) 8/12/2015 no count
+
 int grid[100][100];
 
 int main() {

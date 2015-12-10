@@ -3,6 +3,8 @@
 #include <iostream>
 using namespace std;
 
+//tied #1 (450) 0.000s
+
 int main() {
 	int nCases; cin >> nCases;
 	for (int caseNum=1;caseNum<=nCases;caseNum++) {

@@ -1,6 +1,8 @@
 #include <iostream>
 using namespace std;
 
+//tied #1 8/12/2015 (128) 0.000s doesn't count
+
 const int SIZE = 70;
 
 char grid[SIZE][SIZE];

@@ -6,6 +6,8 @@
 
 //tied for #1 8/1/2015
 //Library stolen from codechef
+
+//outright #1 8/12/2015 0.006s 
 class FastInput {
 public:
 FastInput() {

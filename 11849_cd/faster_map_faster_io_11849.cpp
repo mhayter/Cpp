@@ -7,6 +7,8 @@
 #include <unistd.h>
 using namespace std;
 
+//#2 8/12/2015 0.029s
+
 class FastInput {
 public:
 FastInput() {
