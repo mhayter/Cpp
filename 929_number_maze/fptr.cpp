@@ -5,6 +5,7 @@
 #include <deque>
 #include <list>
 #include <forward_list>
+#include <functional>
 #include <queue>
 using namespace std;
 
@@ -12,6 +13,7 @@ using namespace std;
 #include <cstring>
 #include <cstdint>
 
+// 0.156s using function pointers
 // #2 0.122s macro + no forloop check
 // #3 0.146s move constructor + save index 
 // #3 0.153s dynamic graph construction
@@ -76,8 +78,16 @@ const int CIRC_QUE_SIZE = 10;
 deque<pair<int,int> > circularQue[CIRC_QUE_SIZE];
 bitset<SIZE>visitied;
 
+int yadd(int y,int x) {return y< nRows;}
+int yminus(int y, int x) {return y>=0;};
+int xadd(int y,int x) {return x<nCols;}
+int xminus(int y, int x) {return x>=0;}
+
 const int dy[] = {1,0,-1,0};
 const int dx[] = {0,1,0,-1};
+
+int (*myFunctionPtrArray[])(int,int) = {yadd,xadd,yminus,xminus};
+
 
 #define DOIT \
 	int w = grid[ny][nx];\
@@ -118,22 +128,13 @@ int dijkstraCrazyQueueCreateNodes(pair<int,int> source, int n,pair<int,int> dest
 		visitied[uIndex] = 1;
 		--nElements;
 
-		int ny, nx;
-		ny = u.first+1; nx = u.second;
-		if (ny < nRows) {
-			DOIT;
-		}
-		ny = u.first-1; nx= u.second;
-		if (ny >= 0) {
-			DOIT;
-		}
-		ny = u.first; nx = u.second+1;
-		if (nx < nCols) {
-			DOIT;
-		}
-		ny = u.first; nx = u.second-1;
-		if (nx>=0) {
-			DOIT;
+		for(int i=0;i<4;i++) {
+			int ny = u.first + dy[i];
+			int nx = u.second + dx[i];
+
+			if (myFunctionPtrArray[i](ny,nx)) {
+				DOIT;
+			}
 		}
 	}
 	return dist[getIndex(dest.first,dest.second)];
