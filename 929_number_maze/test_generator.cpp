@@ -9,7 +9,7 @@ int main() {
 	cout << nRows << endl << nCols << endl;
 	for (int i=0;i<nRows;i++) {
 		for(int j=0;j<nCols;j++) {
-			cout << rand()%10 << " ";
+			cout << rand()%10 + 1 << " ";
 		}
 		cout << endl;
 	}
