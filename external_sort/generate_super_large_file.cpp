@@ -4,6 +4,8 @@
 #include <cstdlib>
 using namespace std;
 
+//second argument ie argv[1] is # of megabytes of file
+
 int main(int argc, char *argv[]) {
 	//ios_base::sync_with_stdio(false);
 	string s;//1K

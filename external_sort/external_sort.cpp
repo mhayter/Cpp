@@ -4,6 +4,9 @@
 #include <algorithm>
 using namespace std;
 
+//completed 3GB file in 3m20s?
+//completed 5GB file in 6m45s
+
 int minHeap(const pair<string,int> &a,const pair<string,int> &b) {
 	return a.first > b.first;
 }
@@ -81,7 +84,6 @@ int main() {
 		*/
 
 		//add new element to heap if file isn't empty
-		string newElement;
 		{// no eof
 			string newElement;
 			(*myStreams[place]) >> newElement;
