@@ -3,6 +3,7 @@
 #include <algorithm>
 using namespace std;
 
+//stopped at 68m on 3GB file
 int minHeap(const string &a,const string &b) {
 	return a > b;
 }
