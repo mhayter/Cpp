@@ -3,30 +3,21 @@
 #include <fstream>
 #include <algorithm>
 using namespace std;
-/*
-This is a basic implemenation of external sort.
-Sort into multipe chunks given by MAX_FILE_SIZE (strings are 1024 for now)
-Have pointers to each chunk and use a heap to get smallest value and
-immediately output answer.
 
-My thoughts: 
--use and input/output buffer (in RAM). Is this already done with cout and ifstream? Maybe.
--use parallel threads for output buffer and work (laborious)
--use buffer for reading (read more than #chunks into heap - duh)
-
--measuring permance is diffuclt because no dedicated cpu cycles
-
-Extra-tips: wikipedia external sorting
-*/
+//Use output buffer 11m32s -> 9m41s (new shell)
 
 //completed 3GB file in 3m20s?
-//completed 5GB file in 6m45s -> now 12m33s 1.5*1024*1024 -> 10m memory release?
+//completed 5GB file in 6m45s
 
 int minHeap(const pair<string,int> &a,const pair<string,int> &b) {
 	return a.first > b.first;
 }
 
 const int MAX_FILE_SIZE = 1024*1024*1.5;
+
+const int OUTPUT_BUFFER_SIZE = 1024*1024;
+string outputBuffer[OUTPUT_BUFFER_SIZE]; // 1MB //1GB total
+int oPlace;
 
 string createFileName(int n) {
 	char myBuff[20];
@@ -37,9 +28,11 @@ string createFileName(int n) {
 int main() {
 	//get input
 	ios_base::sync_with_stdio(false);
+	
 	string s;
-	vector<string>fileNames;
-	{ // delete a
+	vector<string>fileNames; 
+	{
+
 		vector<string> a;
 		while (cin >> s) {
 			a.emplace_back(s);
@@ -89,7 +82,14 @@ int main() {
 	//grab smallest and add new
 	while(myHeap.size()) {
 		int place = myHeap.front().second;
-		cout << myHeap.front().first << "\n";
+		//cout << myHeap.front().first << "\n";
+		outputBuffer[oPlace++] = move(myHeap.front().first);
+		if (oPlace >= OUTPUT_BUFFER_SIZE) {
+			for(int i=0;i<oPlace;i++) {
+				cout << outputBuffer[i] << "\n";
+			}
+			oPlace = 0;
+		}
 		//pop heap
 		pop_heap(myHeap.begin(),myHeap.end(),minHeap); myHeap.pop_back();
 		/*if (ntimes <1) {
@@ -115,7 +115,9 @@ int main() {
 		} 
 		ntimes++;
 	}
-
+	for(int i=0;i<oPlace;i++) {
+		cout << outputBuffer[i] << "\n";
+	}
 	cerr << "intermediate_files generated\n";
 	return 0;
 }
