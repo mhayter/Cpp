@@ -13,6 +13,12 @@ now I make a standard file: 10 000 000 digits
 looks like 20% difference in favor of raw
 */
 
+class Tree {
+public:
+	virtual void inOrderTraversal() = 0;
+	virtual void insert(int d) = 0;
+};
+
 struct RawNode {
 	RawNode (int data, RawNode* left, RawNode* right) {
 		this->data = data;
@@ -24,7 +30,7 @@ struct RawNode {
 	RawNode *right;
 };
 
-class RawBST {
+class RawBST : public Tree{
 public:
 	RawBST() {
 		head = nullptr;
@@ -69,7 +75,7 @@ struct Node {
 	unique_ptr<Node> right;
 };
 
-class BST {
+class BST : public Tree{
 public:
 	BST() {
 		head = nullptr;
@@ -101,7 +107,7 @@ private:
 	unique_ptr<Node> head;
 };
 
-class myBST {
+class myBST : public Tree{
 public:
 	myBST() {
 		head = nullptr;
@@ -137,6 +143,7 @@ int a[SIZE];
 
 int main(int argc, char *argv[]) {
 	// your code goes here
+	Tree *treePtr;
 
 	int nElements = atoi(argv[2]);
 	for(int i=0;i<nElements;i++) {
@@ -148,29 +155,19 @@ int main(int argc, char *argv[]) {
 	int start = clock();
 	if (strcmp(argv[1],"-m")==0) {
 		cerr << "myBST" << endl;
-		myBST tree;
-		for(int i=0;i<nElements;i++) {
-			tree.insert(a[i]);
-		}
-		tree.inOrderTraversal();
+		treePtr = new myBST();
 	} else if (strcmp(argv[1],"-b") == 0) {
 		cerr <<"BST" << endl;
-		BST tree;
-
-		for(int i=0;i<nElements;i++) {
-			tree.insert(a[i]);
-		}
-		tree.inOrderTraversal();
+		treePtr = new BST();
 	} else {
 		cerr << "RawBST" << endl;
-		RawBST tree;
-
-		for(int i=0;i<nElements;i++) {
-			//cout << "i " << i << " " << a[i] << endl;
-			tree.insert(a[i]);
-		}
-		tree.inOrderTraversal();
+		treePtr = new RawBST();
 	}
+
+	for(int i=0;i<nElements;i++) {
+		treePtr->insert(a[i]);
+	}
+	treePtr->inOrderTraversal();
 	cerr << clock() - start << endl;
 	return 0;
 }
