@@ -45,6 +45,14 @@ public:
         }
         return cnt;
     }
+    bool isSoft() const {
+        return getAceCount() == 1 && cards.size() == 2;
+    }
+    bool isBlackJack() const { //splitting may fuck up
+        if (cards.size() == 2) {
+            return (getHandValue() == 21);
+        }
+    }
     void clear() {
         this->cards.clear();
     }

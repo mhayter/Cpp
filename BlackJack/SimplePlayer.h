@@ -7,7 +7,7 @@ class SimplePlayer : public Player {
 public:
 	SimplePlayer() {}
 	virtual ~SimplePlayer() {}
-	virtual void play(Deck &deck) override {
+	virtual void play(Deck &deck, const Card &upCard) override {
 		//Hit
         while (myHand.getHandValue()<17) {
             myHand.addCard(deck.deal());

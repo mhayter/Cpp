@@ -14,7 +14,7 @@ public:
     Deck(): DECK_SIZE(STANDARD_DECK_SIZE) {
         createDeck();
     }
-    Deck(int num): DECK_SIZE(num * STANDARD_DECK_SIZE), deckPlace(0) {
+    Deck(int num): deckPlace(0), DECK_SIZE(num * STANDARD_DECK_SIZE){
         createDeck();
     }
     void shuffle() {
@@ -35,7 +35,7 @@ private:
         shuffle();
     }
     int deckPlace;
-    const int DECK_SIZE;
+    int DECK_SIZE; //cant be const kills assignment operator
     static constexpr int STANDARD_DECK_SIZE = 52;
     static constexpr const char* VALUES = "23456789TJQKA";
     static constexpr const char* SUITS = "CSDH";
