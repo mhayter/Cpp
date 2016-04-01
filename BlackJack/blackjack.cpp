@@ -12,6 +12,7 @@ using namespace std;
 
 
 
+
 class BlackJack{
 public:
     BlackJack(int nDecks=4, int nPlayers=2) : 
@@ -24,7 +25,7 @@ public:
         delete player;
         delete dealer;
     }
-    double getResult(int nBets = 100) {
+    double getResult(int nBets = 100, int wager=25) {
         while (nBets-- > 0 && player->money > 0) {
             //cout << "New Hand " << player->money << endl;
             //int z; cin >> z;
@@ -32,97 +33,59 @@ public:
                 cout << "You Lost" << endl;
                 break;
             }
-
             reset();
-            clearHands();
         	//deal cards 
-        	dealHands();
-            if (player->hasBlackJack() && !dealer->hasBlackJack()) {//pay player 1.5x
-                player->win(true);
-                //cerr << "True BJ!!!" << endl;
-                dealer->lose();
-            }
-            else if (player->hasBlackJack() && dealer->hasBlackJack()) {//push
-                player->tie();
-                dealer->tie();
-            }
-            else if (dealer->hasBlackJack() && !player->hasBlackJack()) { // dealer wins
-                dealer->win();
-                player->lose();
-                
-            } else {
-        	   //while I don't bust or stand ask for hit
-        	   player->play(deck, dealer->getUpCard());
+            //cout << "Before dealHands" << endl;
+        	dealHands(wager);
+            //cout << "dealHands" << endl;
+            // for each of the hands evaluate
+            player->evaluateHands(dealer,deck);
             
-                //cout << player->myHand << endl;
-
-            	//if I didn't bust and he did I win
-            	if (player->myHand.bust()) {//bust
-                    //cout << "Player bust" << endl;
-                    dealer->win();
-                    player->lose();
-
-                } else {
-                    dealer->play(deck, dealer->getUpCard()); // doesn't need upCard (eliminate?)
-
-                    //cout << dealer->myHand << endl;
-
-                    if (dealer->myHand.bust()) {// bust player wins
-                        //cout << "Dealer Bust" << endl;
-                        player->win();
-                        dealer->lose();
-                    } else if (player->myHand.getHandValue() > dealer->myHand.getHandValue()) {
-                        //cout << "Player Win!" << endl;
-                        player->win();
-                        dealer->lose();
-                    } else if (player->myHand.getHandValue() < dealer->myHand.getHandValue()) {
-                        //cout << "Player Lose :(" << endl;
-                        dealer->win();
-                        player->lose();
-                    } else { // tie
-                        //cout << "Push ---" << endl;
-                        dealer->tie();
-                        player->tie();
-                    }
-                }
-            }
+            
         }
         return player->money;
     }
+    
+private:
     void reset() {
         deck = Deck(4);
-        clearHands();
+        dealer->clear();
+        player->clear();
     }
-    void clearHands() {
-        dealer->myHand.clear();
-        player->myHand.clear();
-    }
-    void dealHands() {
+    void dealHands(int wager) {
+        Hand dealerHand(wager); // dealer isn't a player truly
+        dealerHand.addCard(deck.deal());
+        dealerHand.addCard(deck.deal());
 
-    	dealer->myHand.addCard(deck.deal());
-        dealer->myHand.addCard(deck.deal());
+        dealer->addHand(dealerHand);
 
-        player->myHand.addCard(deck.deal());
-        player->myHand.addCard(deck.deal());
+        Hand playerHand (wager);
+        playerHand.addCard(deck.deal());
+        playerHand.addCard(deck.deal());
+
+        player->addHand(playerHand);
     }
-private:
+    
     Dealer *dealer;
     Deck deck;
     Player *player;
 };
 
 int main(int argc, char *argv[]) {
-   int nSims = 100000;
+   int nSims = 10;
 
    int nBets = 10; 
 
+   if (argc == 2) {
+        nSims = atoi(argv[1]);
+   }
    vector<double> results;
 
    for (int i=0;i<nSims;i++) {
         BlackJack bj;
         results.push_back(bj.getResult(nBets));
-        //cerr << (1000-results[i])/(25*nBets) << endl;
-        //cerr << "******* Result " << results[i] << endl;
+        cerr << (results[i]-1000)/(25*nBets) << endl;
+        cerr << "******* Result " << results[i] << endl;
    }
 
    //total wagered for eack bet *nBets

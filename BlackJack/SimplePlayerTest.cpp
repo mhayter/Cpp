@@ -16,6 +16,9 @@ int main() {
 
 	assert(sp.money == 1000);
 
+	sp.win(true);
+	assert(sp.money == 1037.5);
+
 
 	return 0;
 }

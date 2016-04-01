@@ -11,7 +11,7 @@ using std::vector;
 
 class Deck {
 public: 
-    Deck(): DECK_SIZE(STANDARD_DECK_SIZE) {
+    Deck(): deckPlace(0), DECK_SIZE(STANDARD_DECK_SIZE) {
         createDeck();
     }
     Deck(int num): deckPlace(0), DECK_SIZE(num * STANDARD_DECK_SIZE){
@@ -25,6 +25,7 @@ public:
             return deck[deckPlace++];
         else {
             cerr << "deck out of place Exception";
+            return Card("FU");
         }
     }
 private:

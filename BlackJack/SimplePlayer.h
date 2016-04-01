@@ -9,14 +9,11 @@ public:
 	virtual ~SimplePlayer() {}
 	virtual void play(Deck &deck, const Card &upCard) override {
 		//Hit
-        while (myHand.getHandValue()<17) {
-            myHand.addCard(deck.deal());
+        while (hands[handPlace].getHandValue()<17) {
+            hands[handPlace].addCard(deck.deal());
         }
 	}
 	virtual void tie() {}
-	Card getUpCard() {
-        return myHand.firstCard();
-    }
 private:
 };
 

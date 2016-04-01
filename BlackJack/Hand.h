@@ -4,18 +4,26 @@
 #include <vector>
 #include <iostream>
 #include "Card.h"
-
+#include "Deck.h"
 using std::vector;
+using std::endl;
+using std::cerr;
+
 
 class Hand {
 public:
-    Hand(){}
+    Hand() = delete;
+    Hand(int wager){
+        this->wager = wager;
+        //cerr << "Hand ctor" << endl;
+        //cards.push_back(Card("KS"));
+    }
     ~Hand(){cards.clear();}
 
     int getHandValue() const {
         int value =0;
         //bool Has ace
-        for (int i=0;i<cards.size();i++) {
+        for (int i=0;i<(int)cards.size();i++) {
             value += cards[i].getValue();
         }
         int nAces = getAceCount();
@@ -38,7 +46,7 @@ public:
     }
     int getAceCount() const {
         int cnt = 0;
-        for(int i=0;i<cards.size();i++) {
+        for(int i=0;i<(int)cards.size();i++) {
             if (cards[i].value == 'A') {
                 cnt++;
             }
@@ -52,18 +60,51 @@ public:
         if (cards.size() == 2) {
             return (getHandValue() == 21);
         }
+        return false;
     }
+    bool isSplittable() {
+        return cards.size() == 2 && (cards[0].value == cards[1].value);
+    }
+    ///
+    Card getCard() {
+        return cards[1];
+    }
+    void setCard(const Card &card) {
+        cards[1] = card;
+    }
+    ///
     void clear() {
         this->cards.clear();
     }
+    //////////////////Actions
+    Hand doSplit(Deck &deck) {
+
+        Hand nextHand(this->wager);
+        nextHand.addCard(getCard()); // change?
+        
+        nextHand.addCard(deck.deal());
+        setCard(deck.deal());
+        return nextHand;
+        
+    }
+    void doDoubleDown(Deck &deck){
+        this->addCard(deck.deal());
+        this->wager *= 2;
+    }
+    void doHit(Deck &deck) {
+        this->addCard(deck.deal());
+    }
     friend std::ostream& operator<<(std::ostream &os, const Hand &hand) {
-        for(int i=0;i<hand.cards.size();i++) {
+        for(int i=0;i<(int)hand.cards.size();i++) {
             os << hand.cards[i] << " ";
         }
         return os;
     }
+    int getWager() {
+        return wager;
+    }
 private:
-    
+    int wager;
     vector<Card> cards;
 };
 
