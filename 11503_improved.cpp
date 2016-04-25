@@ -4,6 +4,7 @@
 #include <unordered_map>
 using namespace std;
 
+//#3 4/25/2016 0.011s -> 0.090s reserve
 //#5 8/12/2015 0.143s
 
 struct Subset{
@@ -50,6 +51,7 @@ int getIndex(const string &s) {
 int main() {
 	ios_base::sync_with_stdio(false);
 	cin.tie(0);
+	myMap.reserve(MAX_FRIENDS);
 
 	int nCases; cin >> nCases;
 	for(int caseNum=1; caseNum<=nCases;caseNum++) {
