@@ -7,6 +7,7 @@ using namespace std;
 #include <cstdio>
 #include <cstring>
 
+//#2 use myhash table/with string/iostream 0.050s
 //#2 eliminate map.count() == 0 0.060s
 //#3 with FastOoutput 0.090s -> 0.080s
 //#3 4/25/2016 0.011s -> 0.090s reserve
@@ -142,7 +143,7 @@ struct Subset{
 };
 
 const int MAX_FRIENDS = 100010;
-pair<int,int>adj[MAX_FRIENDS];
+//pair<int,int>adj[MAX_FRIENDS];
 Subset subsets[MAX_FRIENDS];
 
 int find(int i) {
@@ -178,39 +179,71 @@ int getIndex(const string &s) {
 	}
 }
 
+int newIndex = 0;
+const int HASH_TABLE_SIZE = 1 << 18;
+vector<pair<string,int>> myTable[HASH_TABLE_SIZE];
+vector<int>clearHashes;
+
+int getNewIndex(const string &s) {
+	int hash=0;
+	//int len = strlen(s);
+	for(auto &x:s) {
+		hash = (hash)*31 + x;
+		if (hash >= HASH_TABLE_SIZE) hash &= (HASH_TABLE_SIZE-1);
+	}
+
+	//find it in the table
+	if (myTable[hash].size() == 0) {
+		myTable[hash].emplace_back(make_pair(s,newIndex));
+		clearHashes.emplace_back(hash);
+		return newIndex++;
+	} else {
+		//check if it's contained
+		for(int i=0;i<myTable[hash].size();i++) {
+			if (myTable[hash][i].first == s) {
+				return myTable[hash][i].second;
+			} 
+		}
+		myTable[hash].emplace_back(make_pair(s,newIndex));
+		return newIndex++;
+	}
+}
+
+
 int main() {
 	ios_base::sync_with_stdio(false);
 	cin.tie(0);
 	myMap.reserve(MAX_FRIENDS);
+	clearHashes.reserve(MAX_FRIENDS);
 	FastOutput output;
 
 	int nCases; cin >> nCases;
 	for(int caseNum=1; caseNum<=nCases;caseNum++) {
 		int length; cin >> length;
 		high = 0;
-		
+		newIndex = 0;
 		myMap.clear();
-		for(int i=0;i<length;i++) {
-			string s1, s2; cin >> s1 >> s2;
-			int index1 = getIndex(s1);
-			int index2 = getIndex(s2);
-			
-			adj[i] = make_pair(index1,index2);
-		}
-		for(int i=0;i<high;i++) {
+
+		for(int i=0;i<length+100;i++) {
 			subsets[i].parent=i;
 			subsets[i].total=1;
 		}
-		
 		for(int i=0;i<length;i++) {
-			int u = adj[i].first;
-			int v = adj[i].second;
+			string s1, s2; cin >> s1 >> s2;
+			int index1 = getNewIndex(s1);
+			int index2 = getNewIndex(s2);
+
+			//cout << index1 << " " << index2 << endl;
 			
-			Union(u,v);
-			output.PrintUint(subsets[find(u)].total,'\n');
-			//cout << subsets[find(u)].total << '\n';
+			Union(index1,index2);
+			output.PrintUint(subsets[find(index1)].total,'\n');
 		}
-		//cout << endl;
+		if (caseNum < nCases) {
+			//reset
+			for(auto &x:clearHashes) {
+				myTable[x].clear();
+			}
+		}
 	}
 	return 0;
 }
