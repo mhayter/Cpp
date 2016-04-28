@@ -17,6 +17,7 @@ class Tree {
 public:
 	virtual void inOrderTraversal() = 0;
 	virtual void insert(int d) = 0;
+	virtual ~Tree()
 };
 
 struct RawNode {

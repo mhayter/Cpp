@@ -1,4 +1,4 @@
-//#include <iostream>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -6,12 +6,6 @@ using namespace std;
 
 #include <cstdio>
 #include <cstring>
-// 0.100s scanf
-// 0.140s c strings
-//#2 eliminate map.count() == 0 0.060s sometimes 0.070s
-//#3 with FastOoutput 0.090s -> 0.080s
-//#3 4/25/2016 0.011s -> 0.090s reserve
-//#5 8/12/2015 0.143s
 
 class FastOutput {
 	public:
@@ -176,51 +170,79 @@ void Union(int x, int y) {
 	mySubsets[xroot].total = mySubsets[yroot].total = newTotal;
 }
 
-struct myPair {
-	myPair(const char *str, int index) {
-		this->str = str;
-		this->index = index; 
+const int ALPHABET_SIZE = 52;
+class Node {
+public:
+	Node () {
+		for(int i=0;i<ALPHABET_SIZE;++i) array[i]=0;
+		hashIndex = -1;
 	}
-	const char *str;
-	int index;
+	int hashIndex;
+	Node *array[ALPHABET_SIZE];
 };
 
-const int HASH_TABLE_SIZE = 1 << 18;
-vector<myPair> myTable[HASH_TABLE_SIZE];
-int newIndex = 0;
-vector<int>clearHashes;
 
-int getNewIndex(const char *s) {
-	int hash=0;
-	//int len = strlen(s);
-	for(int i=0;s[i];i++) {
-		hash = (hash)*31 + s[i];
-		if (hash >= HASH_TABLE_SIZE) hash &= (HASH_TABLE_SIZE-1);
-	}
 
-	//find it in the table
-	if (myTable[hash].size() == 0) {
-		myTable[hash].emplace_back(myPair(s,newIndex));
-		clearHashes.emplace_back(hash);
-		return newIndex++;
-	} else {
-		//check if it's contained
-		for(int i=0;i<myTable[hash].size();i++) {
-			if (strcmp(myTable[hash][i].str,s)==0) {
-				return myTable[hash][i].index;
-			} 
+class Trie{
+public:
+	Trie():curIndex(0) {
+		hashIndexes.reserve(MAX_FRIENDS);
+	}	
+	void reset() {
+		//reset hashIndex but retain memory
+		for(auto &x:hashIndexes) {
+			x->hashIndex = 0;
 		}
-		myTable[hash].emplace_back(myPair(s,newIndex));
-		return newIndex++;
+		hashIndexes.clear();
+		curIndex = 0;
 	}
-}
+	//rather than update number in
+	//return "hash index" for union-find algo 
+	int insert(const char *s) {
+		Node *place = &head;
+		for (int i=0; s[i]>='A';++i) { //assum only space and alphas
+			int index;
+			if (s[i]>='a')
+				index = s[i]-'a';
+			else 
+				index = s[i]-'A';
 
+			if (place->array[index]==0) {
+				place->array[index] = new Node;
+			} 
+			place = place->array[index];
+		}
+		if (place->hashIndex == -1) {
+			//new element/ new index
+			place->hashIndex = curIndex++;
+		}
+		return place->hashIndex;
+	}
+	
+	int find(const char *s) {
+		Node *place = &head;
+		for(int i=0;s[i]>='A';++i) {
+			int index;
+			if (s[i]>='a')
+				index = s[i]-'a';
+			else 
+				index = s[i]-'A';
+			if (place->array[index] == 0) return 0;
+			place = place->array[index];
+		}
+		return place->hashIndex;
+	}
+	Node head;	
+	int curIndex;
+	vector<Node *> hashIndexes;
+};
+
+
+Trie trie;
 
 int main() {
-	clearHashes.reserve(MAX_FRIENDS);
-	FastOutput output;
 	char line[80];
-
+	FastOutput output;
 	int nCases;
 	scanf("%d\n", &nCases);
 	//gets(line);
@@ -232,9 +254,7 @@ int main() {
 		//gets(line);
 		//sscanf(line, "%d\n", &length);
 
-		newIndex = 0;
 		nItems = 0;
-		clearHashes.clear();
 		Subset subsets[length+100];//not technically correct?
 		mySubsets = subsets;
 
@@ -243,26 +263,21 @@ int main() {
 			char *s1 = new char[21]{'\0'};
 			char *s2 = new char[21]{'\0'};
 
-
 			scanf("%s %s\n", s1,s2);
 			//gets(line);
 			//sscanf(line, "%s %s\n", s1,s2);
-
-			int index1 = getNewIndex(s1);
-			int index2 = getNewIndex(s2);
+			int index1 = trie.insert(s1);
+			int index2 = trie.insert(s2);
 			
 			//printf ("%d %d\n", index1, index2);
 			Union(index1,index2);
 
 			output.PrintUint(subsets[find(index1)].total,'\n');
 		}
-		//clear it 
 		if (caseNum < nCases) {
-			//reset
-			for(auto &x:clearHashes) {
-				myTable[x].clear();
-			}
+			trie.reset();
 		}
 	}
+		
 	return 0;
 }

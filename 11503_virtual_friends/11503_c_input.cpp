@@ -7,6 +7,8 @@ using namespace std;
 #include <cstdio>
 #include <cstring>
 
+//#1 0.030s lucky fucking run
+//#2 0.040s readall wth fread
 //#2 use myhash table/with string/iostream 0.050s
 //#2 eliminate map.count() == 0 0.060s
 //#3 with FastOoutput 0.090s -> 0.080s
@@ -168,82 +170,102 @@ void Union(int x, int y) {
 	int newTotal = subsets[xroot].total + subsets[yroot].total;
 	subsets[xroot].total = subsets[yroot].total = newTotal;
 }
-int high=0;
-unordered_map<string,int>myMap;
-int getIndex(const string &s) {
-	auto myIterator = myMap.find(s);
-	if (myIterator != myMap.end())
-		return myIterator->second;
-	else {
-		return myMap[s]=high++;
+
+FastOutput output;
+const int FILESIZE_IN_BYTES = 3625000;
+const int MAX_STRINGS_IN_FILE = (int)(FILESIZE_IN_BYTES/5.66); // by experiment
+const int MAX_STRING_LENGTH = 20;
+char buff[FILESIZE_IN_BYTES];
+
+char A[MAX_STRINGS_IN_FILE][MAX_STRING_LENGTH+1];
+
+int arrayIndex;
+void readAll() {
+	int r = fread(buff, 1, sizeof(buff), stdin);
+	arrayIndex  = 0;
+	for(int i=0;i<r;++i) {
+		int len = 0;
+		while (buff[i] >= '0') {
+			A[arrayIndex][len++] = buff[i++];
+		}
+		//#ifdef _WIN32
+		if (len)
+		//#endif
+		    ++arrayIndex;
 	}
+	arrayIndex = 0;
 }
 
+//unordered map 0.076s (0.070) avgs vs 0.056s avg
+//#define UNORDERED_MAP
 int newIndex = 0;
 const int HASH_TABLE_SIZE = 1 << 18;
-vector<pair<string,int>> myTable[HASH_TABLE_SIZE];
+vector<pair<int,int>> myTable[HASH_TABLE_SIZE]; // index of string, newIndex
 vector<int>clearHashes;
 
-int getNewIndex(const string &s) {
+int getNewIndex() {
 	int hash=0;
 	//int len = strlen(s);
-	for(auto &x:s) {
-		hash = (hash)*31 + x;
+	for(int i=0;A[arrayIndex][i];++i) {
+		hash = (hash)*31 + A[arrayIndex][i];
 		if (hash >= HASH_TABLE_SIZE) hash &= (HASH_TABLE_SIZE-1);
 	}
 
 	//find it in the table
 	if (myTable[hash].size() == 0) {
-		myTable[hash].emplace_back(make_pair(s,newIndex));
+		myTable[hash].emplace_back(make_pair(arrayIndex++,newIndex));
 		clearHashes.emplace_back(hash);
 		return newIndex++;
 	} else {
 		//check if it's contained
 		for(int i=0;i<myTable[hash].size();i++) {
-			if (myTable[hash][i].first == s) {
+			if (strcmp(A[myTable[hash][i].first],A[arrayIndex])==0) {
+				arrayIndex++;
 				return myTable[hash][i].second;
 			} 
 		}
-		myTable[hash].emplace_back(make_pair(s,newIndex));
+		myTable[hash].emplace_back(make_pair(arrayIndex,newIndex));
+		//max bucketsize == 5
+		arrayIndex++;
 		return newIndex++;
 	}
 }
 
 
+
 int main() {
-	ios_base::sync_with_stdio(false);
-	cin.tie(0);
-	myMap.reserve(MAX_FRIENDS);
+	readAll();
+	//printf ("Done = %s\n", A[arrayIndex+1000]);
+	//return 0;
 	clearHashes.reserve(MAX_FRIENDS);
-	FastOutput output;
+	int nCases; 
+	sscanf(A[arrayIndex++],"%d",&nCases);
 
-	int nCases; cin >> nCases;
 	for(int caseNum=1; caseNum<=nCases;caseNum++) {
-		int length; cin >> length;
-		high = 0;
+		int length; sscanf(A[arrayIndex++],"%d",&length);
 		newIndex = 0;
-		myMap.clear();
 
-		for(int i=0;i<length+100;i++) {
+		for(int i=0;i<length+10;i++) {
 			subsets[i].parent=i;
 			subsets[i].total=1;
 		}
 		for(int i=0;i<length;i++) {
-			string s1, s2; cin >> s1 >> s2;
-			int index1 = getNewIndex(s1);
-			int index2 = getNewIndex(s2);
-
-			//cout << index1 << " " << index2 << endl;
+			int index1 = getNewIndex();
+			int index2 = getNewIndex();
+			//printf("%d %d\n",index1, index2);
 			
 			Union(index1,index2);
 			output.PrintUint(subsets[find(index1)].total,'\n');
 		}
+		#ifndef UNORDERED_MAP
 		if (caseNum < nCases) {
 			//reset
 			for(auto &x:clearHashes) {
 				myTable[x].clear();
 			}
 		}
+		#endif
 	}
+	
 	return 0;
 }
