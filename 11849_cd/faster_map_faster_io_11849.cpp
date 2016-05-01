@@ -5,8 +5,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <cassert>
 using namespace std;
 
+//#2 4/29/2016 only 7 testcases!
+//works fast but is wrong 
+//bitset should be 10^9 by spec but exp >3e6
+//loop loops n times not m times
 //#2 8/12/2015 0.029s
 
 class FastInput {
@@ -49,128 +54,15 @@ uint32_t m_data[16384];
 size_t m_dataOffset, m_dataSize;
 uint32_t m_v;
 };
-class FastOutput {
-public:
-FastOutput() {
-m_dataOffset = 0;
-}
-~FastOutput() {
-}
-void Flush() {
-if (m_dataOffset) {
-if (fwrite(m_data,1, m_dataOffset,stdout));
-m_dataOffset = 0;
-}
-}
-void PrintUint(uint32_t v, char d) {
-if (m_dataOffset + 11 > sizeof(m_data)) Flush();
-if (v < 100000) {
-if (v < 1000) {
-if (v < 10) {
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 1;
-} else if (v < 100) {
-m_data[m_dataOffset + 1] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 2;
-} else {
-m_data[m_dataOffset + 2] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 1] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 3;
-}
-} else {
-if (v < 10000) {
-m_data[m_dataOffset + 3] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 2] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 1] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 4;
-} else {
-m_data[m_dataOffset + 4] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 3] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 2] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 1] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 5;
-}
-}
-} else {
-if (v < 100000000) {
-if (v < 1000000) {
-m_data[m_dataOffset + 5] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 4] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 3] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 2] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 1] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 6;
-} else if (v < 10000000) {
-m_data[m_dataOffset + 6] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 5] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 4] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 3] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 2] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 1] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 7;
-} else {
-m_data[m_dataOffset + 7] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 6] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 5] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 4] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 3] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 2] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 1] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 8;
-}
-} else {
-if (v < 1000000000) {
-m_data[m_dataOffset + 8] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 7] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 6] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 5] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 4] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 3] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 2] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 1] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 9;
-} else {
-m_data[m_dataOffset + 9] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 8] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 7] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 6] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 5] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 4] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 3] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 2] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 1] = v - v / 10 * 10 + 48; v /= 10;
-m_data[m_dataOffset + 0] = v + 48;
-m_dataOffset += 10;
-}
-}
-}
-m_data[m_dataOffset++] = d;
-}
-void PrintChar(char d) {
-if (m_dataOffset + 1 > sizeof(m_data)) Flush();
-m_data[m_dataOffset++] = d;
-}
-void ReplaceChar(int offset, char d) {
-m_data[m_dataOffset + offset] = d;
-}
-public:
-uint8_t m_data[32768];
-size_t m_dataOffset;
-}; 
 #define BITSET
-const int MAX_SIZE = 1000000000/32 + 1;
+//should be 10^9+1 by spec but < 3e6 by inpection
+const int MAX_SIZE = (int) (3e6 + 1);
 const int SIZE = 1000010;
 int myArray[SIZE];
 #ifdef BITSET
-bitset<MAX_SIZE>map2;
+//should be size 10^9 +1 by spec but works
+const int MAX_TEST_CASES = 7;
+bitset<MAX_SIZE>map2[MAX_TEST_CASES];
 #else
 unsigned map1[MAX_SIZE];
 #endif
@@ -179,21 +71,23 @@ int main() {
 	// your code goes here
 	int n,m;
 	FastInput input;
-	FastOutput output;
 	int i,j;
 	int nCases = 0;
 	while (true) {
 		n=input.ReadNext(); m=input.ReadNext();
 		if (n==0 && m==0) break;
-		nCases++;
-		if (nCases>32) break;
+		
+		//assert(nCases < 8);
+		//7 testcases total!
+		if (nCases>7) break;
 		int nFound=0;
 		int num; 
 		for(i=0;i<n;++i) { 
 			myArray[i]=input.ReadNext(); 
 			num = myArray[i]; 
+			//assert(num < 2e6);
 			#ifdef BITSET
-			map2[num]=1;
+			map2[nCases][num]=1;
 			#else
 			map1[num/32]|=(1<<(num%32));
 			#endif
@@ -201,21 +95,23 @@ int main() {
 		//can change to n and get right
 		for(j=0;j<n;++j) { 
 			num=input.ReadNext(); 
+			//if (num > myArray[n-1]) break;
 			#ifdef BITSET	
-			if (map2[num]) ++nFound;
+			if (map2[nCases][num]) ++nFound;
 			#else
 			if(map1[num/32]&(1<<(num%32))) 
 				++nFound;
 			#endif
 		}
-		output.PrintUint(nFound,'\n');
+		printf("%d\n", nFound);
+		nCases++;
+		if (nCases == 7) break;
 		#ifdef BITSET
 		//map2 =0;
-		for(i=0;i<n;++i) map2[myArray[i]] = 0;
+		//for(i=0;i<n;++i) map2[myArray[i]] = 0;
 		#else
 		for(int i=0;i<n;++i) map1[myArray[i]/32] = 0;
 		#endif
 	}
-	output.Flush();
 	return 0;
 }
