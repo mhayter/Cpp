@@ -94,7 +94,7 @@ int main() {
 			}
 		}
 		reverse(miss.begin(),miss.end());
-		cout << s + miss << "\n";
+		cout << s << miss << "\n";
 	}
 	return 0;
 }
