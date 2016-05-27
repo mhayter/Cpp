@@ -12,6 +12,7 @@ using namespace std;
 #include <cstring>
 #include <cstdint>
 
+//now is right !!! but 0.230s :( stop criterion needs work
 //kind of right  but slow regardless 0.163 WA
 
 // #2 0.122s macro + no forloop check
@@ -93,6 +94,95 @@ int getIndex (int y,int x) {
 
 #define db(x) cerr << #x << " = " << x << endl;
 
+int nProcessed;
+
+#define RELAX(QUE1, QUE2, PROCESSED1, PROCESSED2, DIST1, DIST2, U1, minDist, que1Elements, que2Elements, que1Index, que2Index) \
+	if (que1Elements) {\
+		int que1TopWeight=0, que2TopWeight=0;\
+		while (QUE1[que1Index].empty()) {\
+			++que1Index;\
+			if (que1Index == CIRC_QUE_SIZE) que1Index = 0;\
+		}\
+		pair<int, int > u = QUE1[que1Index].front().second;\
+		if (que2Elements) {\
+			while (QUE2[que2Index].empty()) {\
+				++que2Index;\
+				if (que2Index == CIRC_QUE_SIZE) que2Index = 0;\
+			} \
+		}\
+		pair<int, int> other = QUE2[que2Index].front().second;\
+		que1TopWeight = QUE1[que1Index].front().first;\
+		que2TopWeight = QUE2[que2Index].front().first;\
+		if (que2TopWeight+ que1TopWeight >= minDist+9) return minDist;\
+		QUE1[que1Index].pop_front();\
+		que1Elements--;\
+		++nProcessed;\
+		int uIndex = getIndex(u.first,u.second);\
+		int ny, nx;\
+		ny = u.first+1; nx = u.second;\
+		if (ny < nRows) {\
+			int w = grid[ny][nx];\
+			int alt = DIST1[uIndex] + w;\
+			if (alt < DIST1[getIndex(ny,nx)]) {\
+				DIST1[getIndex(ny,nx)] = alt;\
+				if (PROCESSED2[getIndex(ny,nx)]) {\
+					minDist = min(minDist, DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
+				}\
+				int newIndex = que1Index + w;\
+				if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
+				QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx))); \
+				++que1Elements;\
+			}\
+		}\
+		ny = u.first-1; nx= u.second;\
+		if (ny >= 0) {\
+			int w = grid[ny][nx];\
+			int alt = DIST1[uIndex] + w;\
+			if (alt < DIST1[getIndex(ny,nx)]) {\
+				DIST1[getIndex(ny,nx)] = alt;\
+				if (PROCESSED2[getIndex(ny,nx)]) {\
+					minDist = min(minDist, DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
+				}\
+				int newIndex = que1Index + w;\
+				if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
+				QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx)));\
+				++que1Elements;\
+			}\
+		}\
+		ny = u.first; nx = u.second+1;\
+		if (nx < nCols) {\
+			int w = grid[ny][nx];\
+			int alt = DIST1[uIndex] + w;\
+			if (alt < DIST1[getIndex(ny,nx)]) {\
+				DIST1[getIndex(ny,nx)] = alt;\
+				if (PROCESSED2[getIndex(ny,nx)]) {\
+					minDist = min(minDist, DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
+				}\
+				int newIndex = que1Index + w;\
+				if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
+				QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx)));\
+				++que1Elements;\
+			}\
+		}\
+		ny = u.first; nx = u.second-1;\
+		if (nx>=0) {\
+			int w = grid[ny][nx];\
+			int alt = DIST1[uIndex] + w;\
+			if (alt < DIST1[getIndex(ny,nx)]) {\
+				DIST1[getIndex(ny,nx)] = alt;\
+				if (PROCESSED2[getIndex(ny,nx)]) {\
+					minDist = min(minDist,DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
+				}\
+				int newIndex = que1Index + w;\
+				if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
+				QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx)));\
+				++que1Elements;\
+			}\
+		}\
+		PROCESSED1[uIndex] = 1;\
+	}\
+
+
 int functionRelax(deque<pair<int,pair<int,int> > > QUE1[], deque<pair<int, pair<int,int> > > QUE2[], bitset<SIZE> &PROCESSED1, bitset<SIZE> &PROCESSED2, int DIST1[],int DIST2[], int U1, 
 	int &minDist, int &que1Elements, int &que2Elements, int &que1Index, int &que2Index) {
 
@@ -103,7 +193,7 @@ int functionRelax(deque<pair<int,pair<int,int> > > QUE1[], deque<pair<int, pair<
 			++que1Index;
 			if (que1Index == CIRC_QUE_SIZE) que1Index = 0;
 		}
-		
+		//nProcessed++;
 		pair<int, int > u = QUE1[que1Index].front().second; 
 		//db(que1Elements);db(que2Elements);
 		if (que2Elements) {
@@ -121,7 +211,10 @@ int functionRelax(deque<pair<int,pair<int,int> > > QUE1[], deque<pair<int, pair<
 		//cerr <<"u = " << u.first << " " << u.second <<endl;
 		//db(que2TopWeight);db(que1TopWeight);
 
-		if (que2TopWeight+ que1TopWeight >= minDist) return minDist;
+		if (que2TopWeight+ que1TopWeight >= minDist+9) {
+			//cout <<"Weights on ques " << que2TopWeight << " " << que1TopWeight << " mindis " << minDist << endl;
+		 	return minDist;
+		 }
 		QUE1[que1Index].pop_front();
 		que1Elements--;
 
@@ -187,7 +280,7 @@ int functionRelax(deque<pair<int,pair<int,int> > > QUE1[], deque<pair<int, pair<
 				DIST1[getIndex(ny,nx)] = alt;
 				//cerr << "DIST1 " << DIST1[getIndex(ny,nx)] << endl;
 				if (PROCESSED2[getIndex(ny,nx)]) {
-					minDist = min(minDist, DIST1[uIndex] + DIST2[getIndex(ny,nx)]);
+					minDist = min(minDist,DIST1[uIndex] + DIST2[getIndex(ny,nx)]);
 				}
 				int newIndex = que1Index + w;
 				if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;
@@ -203,7 +296,7 @@ int functionRelax(deque<pair<int,pair<int,int> > > QUE1[], deque<pair<int, pair<
 
 int dijkstraCrazyQueueCreateNodes(pair<int,int> source, int n,pair<int,int> dest) {
 	///////////////RESET///////////////////////////////////
-	if (source == dest) return 0;
+	if (source == dest) return grid[source.first][source.second];
 	for(int i=0;i<n;i++) {Fdist[i] = Bdist[i] = INF;}
 	
 	for(int i=0;i<CIRC_QUE_SIZE;i++) {
@@ -211,7 +304,6 @@ int dijkstraCrazyQueueCreateNodes(pair<int,int> source, int n,pair<int,int> dest
 		Bque[i].clear();
 	}
 	Fprocessed = Bprocessed = 0;
-	Fdist[getIndex(source.first,source.second)]=0; Bdist[getIndex(dest.first,dest.second)]=0;
 
 	for(int i=0;i<CIRC_QUE_SIZE;i++) {Fque[i].clear(); Bque[i].clear();}
 	////////////////////////////////////////////////////////////
@@ -223,8 +315,8 @@ int dijkstraCrazyQueueCreateNodes(pair<int,int> source, int n,pair<int,int> dest
 	Fdist[0] = grid[0][0];
 	Bdist[getIndex(dest.first,dest.second)] = grid[dest.first][dest.second];
 
-	Fque[0].push_front(make_pair(0,source));
-	Bque[0].push_front(make_pair(0,dest));
+	Fque[0].push_front(make_pair(grid[0][0],source));
+	Bque[0].push_front(make_pair(grid[dest.first][dest.second],dest));
 	Felements = Belements = 1;
 
 	//////////////////END INSERT //////////////////////////////////
@@ -235,11 +327,10 @@ int dijkstraCrazyQueueCreateNodes(pair<int,int> source, int n,pair<int,int> dest
 	int Fu,Bu;
 	int alt, v;
 
+	//nProcessed = 0;
 	while (Felements || Belements) {
-		ans = functionRelax(Fque,Bque,Fprocessed,Bprocessed,Fdist,Bdist,Fu,minDist,Felements,Belements,FqueIndex,BqueIndex);
-		if (ans != -1) return ans;
-		ans = functionRelax(Bque,Fque,Bprocessed,Fprocessed,Bdist,Fdist,Bu,minDist,Belements,Felements,BqueIndex,FqueIndex);
-		if (ans != -1) return ans;
+		RELAX(Fque,Bque,Fprocessed,Bprocessed,Fdist,Bdist,Fu,minDist,Felements,Belements,FqueIndex,BqueIndex);
+		RELAX(Bque,Fque,Bprocessed,Fprocessed,Bdist,Fdist,Bu,minDist,Belements,Felements,BqueIndex,FqueIndex);
 	}
 
 	return INF;
@@ -265,7 +356,24 @@ int main() {
 				grid[i][j] = input.ReadNext();
 			}
 		}
+		nProcessed = 0;
 		printf("%d\n", dijkstraCrazyQueueCreateNodes(make_pair(0,0), nRows*nCols, make_pair(nRows-1,nCols-1)));
+		cerr << "nProcessed " << nProcessed << endl;
+		/*printf("Fdist : \n");
+		for(int i=0;i<nRows;i++) {
+			for(int j=0;j<nCols;j++) {
+				printf("%d ", Fdist[getIndex(i,j)]);
+			}
+			printf("\n");
+		}
+		printf("Bdist :\n");
+		for(int i=0;i<nRows;i++) {
+			for(int j=0;j<nCols;j++) {
+				printf("%d ", Bdist[getIndex(i,j)]);
+			}
+			printf("\n");
+		}
+		*/
 	}
 	//cout <<"fart" << endl;
 	//output.Flush();
