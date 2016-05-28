@@ -7,14 +7,12 @@
 #include <forward_list>
 #include <queue>
 using namespace std;
-
+#include <ctime>
 #include <cstdio>
 #include <cstring>
 #include <cstdint>
-
-//now is right !!! but 0.230s :( stop criterion needs work
-//kind of right  but slow regardless 0.163 WA
-
+// 0.126s slower with last move added pairs
+// #2 0.119s remove visited
 // #2 0.122s macro + no forloop check
 // #3 0.146s move constructor + save index 
 // #3 0.153s dynamic graph construction
@@ -61,8 +59,8 @@ class FastInput {
 		return m_data[m_dataOffset++];
 	}
 	public:
-		uint8_t m_buffer[32768];
-		uint32_t m_data[16384];
+		uint8_t m_buffer[32768*2];
+		uint32_t m_data[16384*2];
 		size_t m_dataOffset, m_dataSize;
 		uint32_t m_v;
 };
@@ -71,9 +69,25 @@ const int INF = 1000000000;
 const int SIZE = 1000*1000;
 
 int nRows,nCols;
+int dist[SIZE];
 
 int grid[1010][1010];
-int nProcessed;
+
+struct State {
+	int ny;
+	int nx;
+};
+
+const int CIRC_QUE_SIZE = 16;
+const int CIRC_QUE_SIZE_MINUS_ONE = CIRC_QUE_SIZE - 1;
+pair<int,int> circularQue[CIRC_QUE_SIZE][SIZE];// <y,x>,lastmove
+int cqsize[CIRC_QUE_SIZE];
+
+int cqs[CIRC_QUE_SIZE],cqe[CIRC_QUE_SIZE];
+//bitset<SIZE>visitied;
+
+const int dy[] = {1,0,-1,0};
+const int dx[] = {0,1,0,-1};
 
 namespace bidirectional_dijkstra {
 	int Fdist[SIZE];
@@ -82,7 +96,7 @@ namespace bidirectional_dijkstra {
 	const int CIRC_QUE_SIZE = 10;
 	deque<pair<int,pair<int,int> > > Fque[CIRC_QUE_SIZE];
 	deque<pair<int,pair<int,int> > > Bque[CIRC_QUE_SIZE];
-	bitset<SIZE>Fprocessed,Bprocessed;
+	//bitset<SIZE>Fprocessed,Bprocessed;
 	int Felements, Belements;
 
 
@@ -96,91 +110,55 @@ namespace bidirectional_dijkstra {
 	}
 
 	#define db(x) cerr << #x << " = " << x << endl;
+	#define UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index)\
+			int w = grid[ny][nx];\
+			int alt = DIST1[uIndex] + w;\
+			if (alt < DIST1[getIndex(ny,nx)]) {\
+				DIST1[getIndex(ny,nx)] = alt;\
+				minDist = min(minDist, DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
+				int newIndex = que1Index + w;\
+				if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
+				QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx))); \
+				++que1Elements;\
+			}
 
-	#define RELAX(QUE1, QUE2, PROCESSED1, PROCESSED2, DIST1, DIST2, U1, minDist, que1Elements, que2Elements, que1Index, que2Index) \
-		if (que1Elements) {\
+	#define RELAX(QUE1, QUE2, DIST1, DIST2, U1, minDist, que1Elements, que2Elements, que1Index, que2Index) \
+		{\
 			int que1TopWeight=0, que2TopWeight=0;\
 			while (QUE1[que1Index].empty()) {\
 				++que1Index;\
 				if (que1Index == CIRC_QUE_SIZE) que1Index = 0;\
 			}\
-			pair<int, int > u = QUE1[que1Index].front().second;\
-			if (que2Elements) {\
+			pair<int, int > u = move(QUE1[que1Index].front().second);\
+			{\
 				while (QUE2[que2Index].empty()) {\
 					++que2Index;\
 					if (que2Index == CIRC_QUE_SIZE) que2Index = 0;\
 				} \
 			}\
-			pair<int, int> other = QUE2[que2Index].front().second;\
 			que1TopWeight = QUE1[que1Index].front().first;\
 			que2TopWeight = QUE2[que2Index].front().first;\
-			if (que2TopWeight+ que1TopWeight >= minDist+9) return minDist;\
+			if (que2TopWeight+ que1TopWeight >= minDist) return minDist;\
 			QUE1[que1Index].pop_front();\
 			que1Elements--;\
-			++nProcessed;\
 			int uIndex = getIndex(u.first,u.second);\
 			int ny, nx;\
 			ny = u.first+1; nx = u.second;\
 			if (ny < nRows) {\
-				int w = grid[ny][nx];\
-				int alt = DIST1[uIndex] + w;\
-				if (alt < DIST1[getIndex(ny,nx)]) {\
-					DIST1[getIndex(ny,nx)] = alt;\
-					if (PROCESSED2[getIndex(ny,nx)]) {\
-						minDist = min(minDist, DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
-					}\
-					int newIndex = que1Index + w;\
-					if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
-					QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx))); \
-					++que1Elements;\
-				}\
+				UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index);\
 			}\
 			ny = u.first-1; nx= u.second;\
 			if (ny >= 0) {\
-				int w = grid[ny][nx];\
-				int alt = DIST1[uIndex] + w;\
-				if (alt < DIST1[getIndex(ny,nx)]) {\
-					DIST1[getIndex(ny,nx)] = alt;\
-					if (PROCESSED2[getIndex(ny,nx)]) {\
-						minDist = min(minDist, DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
-					}\
-					int newIndex = que1Index + w;\
-					if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
-					QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx)));\
-					++que1Elements;\
-				}\
+				UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index);\
 			}\
 			ny = u.first; nx = u.second+1;\
 			if (nx < nCols) {\
-				int w = grid[ny][nx];\
-				int alt = DIST1[uIndex] + w;\
-				if (alt < DIST1[getIndex(ny,nx)]) {\
-					DIST1[getIndex(ny,nx)] = alt;\
-					if (PROCESSED2[getIndex(ny,nx)]) {\
-						minDist = min(minDist, DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
-					}\
-					int newIndex = que1Index + w;\
-					if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
-					QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx)));\
-					++que1Elements;\
-				}\
+				UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index);\
 			}\
 			ny = u.first; nx = u.second-1;\
 			if (nx>=0) {\
-				int w = grid[ny][nx];\
-				int alt = DIST1[uIndex] + w;\
-				if (alt < DIST1[getIndex(ny,nx)]) {\
-					DIST1[getIndex(ny,nx)] = alt;\
-					if (PROCESSED2[getIndex(ny,nx)]) {\
-						minDist = min(minDist,DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
-					}\
-					int newIndex = que1Index + w;\
-					if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
-					QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx)));\
-					++que1Elements;\
-				}\
+				UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index);\
 			}\
-			PROCESSED1[uIndex] = 1;\
 		}\
 
 
@@ -212,7 +190,7 @@ namespace bidirectional_dijkstra {
 			//cerr <<"u = " << u.first << " " << u.second <<endl;
 			//db(que2TopWeight);db(que1TopWeight);
 
-			if (que2TopWeight+ que1TopWeight >= minDist+9) {
+			if (que2TopWeight+ que1TopWeight >= minDist+2) {
 				//cout <<"Weights on ques " << que2TopWeight << " " << que1TopWeight << " mindis " << minDist << endl;
 			 	return minDist;
 			 }
@@ -304,7 +282,7 @@ namespace bidirectional_dijkstra {
 			Fque[i].clear();
 			Bque[i].clear();
 		}
-		Fprocessed = Bprocessed = 0;
+		//Fprocessed = Bprocessed = 0;
 
 		for(int i=0;i<CIRC_QUE_SIZE;i++) {Fque[i].clear(); Bque[i].clear();}
 		////////////////////////////////////////////////////////////
@@ -330,12 +308,90 @@ namespace bidirectional_dijkstra {
 
 		//nProcessed = 0;
 		while (Felements || Belements) {
-			RELAX(Fque,Bque,Fprocessed,Bprocessed,Fdist,Bdist,Fu,minDist,Felements,Belements,FqueIndex,BqueIndex);
-			RELAX(Bque,Fque,Bprocessed,Fprocessed,Bdist,Fdist,Bu,minDist,Belements,Felements,BqueIndex,FqueIndex);
+			RELAX(Fque,Bque,Fdist,Bdist,Fu,minDist,Felements,Belements,FqueIndex,BqueIndex);
+			RELAX(Bque,Fque,Bdist,Fdist,Bu,minDist,Belements,Felements,BqueIndex,FqueIndex);
 		}
 
 		return INF;
 	}
+}
+
+#define DOIT(direction)\
+	int w = grid[ny][nx];\
+	int alt = dist[uIndex] + w;\
+	if (alt < dist[getIndex(ny,nx)]) {\
+		dist[getIndex(ny,nx)] = alt;\
+		int newIndex = (cirIndex + w) & CIRC_QUE_SIZE_MINUS_ONE;\
+		circularQue[newIndex][cqsize[newIndex]++] = make_pair(ny,nx); \
+		++nElements;\
+	}\
+
+int getIndex (int y,int x) {
+	return y*nCols + x;
+}
+enum DIR {UP,DOWN,LEFT,RIGHT};
+
+#define DO_UP\
+	ny = u.first-1; nx= u.second;\
+	if (ny >= 0) {\
+		DOIT(UP);\
+	}
+
+#define DO_DOWN\
+	ny = u.first+1; nx = u.second;\
+	if (ny < nRows) {\
+		DOIT(DOWN);\
+	}
+
+#define DO_LEFT\
+	ny = u.first; nx = u.second-1;\
+	if (nx>=0) {\
+		DOIT(LEFT);\
+	}
+
+#define DO_RIGHT\
+	ny = u.first; nx = u.second+1;\
+	if (nx < nCols) {\
+		DOIT(RIGHT);\
+	}
+
+
+
+
+int dijkstraCrazyQueueCreateNodes(pair<int,int> source, int n,pair<int,int> dest) {
+	for(int i=0;i<n;i++){ dist[i] = INF; }
+	//visitied = 0;
+	for(int i=0;i<CIRC_QUE_SIZE;i++) {
+		cqs[i] = cqe[i] = 0;
+		cqsize[i] = 0;
+	}
+	int cirIndex=0;
+	int nElements = 0;
+
+	dist[0]=grid[0][0];
+	circularQue[0][cqsize[0]++]= make_pair(source.first,source.second); //START RIGHT OR DOWN
+	++nElements;
+	
+	while (nElements) {
+		for(int i=0;i<cqsize[cirIndex];i++) {
+			pair<int,int> u = circularQue[cirIndex][i];//pop front
+			//cerr << "u " << u.first << " " << u.second << endl;
+			if (u.first == dest.first && u.second == dest.second) return dist[getIndex(dest.first,dest.second)];
+			int uIndex = getIndex(u.first,u.second);
+			--nElements;
+
+			int ny, nx;
+			DO_RIGHT;
+			DO_DOWN;
+			DO_LEFT;
+			DO_UP
+		}
+		
+		cqsize[cirIndex] = 0;
+		++cirIndex;
+		cirIndex &= CIRC_QUE_SIZE_MINUS_ONE;
+	}
+	return dist[getIndex(dest.first,dest.second)];
 }
 
 #ifdef ONLINE_JUDGE
@@ -344,12 +400,14 @@ namespace bidirectional_dijkstra {
 #endif
 
 int main() {
+	//int start = clock();
+	ios_base::sync_with_stdio(false);
 	FastInput input;
-
 	int nCases = input.ReadNext();
+
+	int nTimes = 0;
 	
 	for(int caseNum=1;caseNum<=nCases;caseNum++) {
-		//cerr << "************************* CASE # " << caseNum << endl;
 		nRows = input.ReadNext();
 		nCols = input.ReadNext();
 		int nNodes = 1;
@@ -358,26 +416,18 @@ int main() {
 				grid[i][j] = input.ReadNext();
 			}
 		}
-		nProcessed = 0;
-		printf("%d\n", bidirectional_dijkstra::bidirectionalDijkstraCrazyQueueCreateNodes(make_pair(0,0), nRows*nCols, make_pair(nRows-1,nCols-1)));
-		cerr << "nProcessed " << nProcessed << endl;
-		/*printf("Fdist : \n");
-		for(int i=0;i<nRows;i++) {
-			for(int j=0;j<nCols;j++) {
-				printf("%d ", Fdist[getIndex(i,j)]);
-			}
-			printf("\n");
+		//nProcessed = 0;
+		//cerr << clock() -start << endl;
+		if (false && nCols*nRows < 950000)
+			cout << dijkstraCrazyQueueCreateNodes(make_pair(0,0), nRows*nCols, make_pair(nRows-1,nCols-1)) << "\n";
+		else {
+			//nTimes++;
+			cout << bidirectional_dijkstra::bidirectionalDijkstraCrazyQueueCreateNodes(make_pair(0,0), nRows*nCols, make_pair(nRows-1,nCols-1)) << "\n";
+			//if (nTimes >= 5) throw -1;
 		}
-		printf("Bdist :\n");
-		for(int i=0;i<nRows;i++) {
-			for(int j=0;j<nCols;j++) {
-				printf("%d ", Bdist[getIndex(i,j)]);
-			}
-			printf("\n");
-		}
-		*/
+		//cerr << "nProcessed " <<  nProcessed << endl;
 	}
-	//cout <<"fart" << endl;
+	//cout <<grid[0][0] << endl;
 	//output.Flush();
 	return 0;
 }
