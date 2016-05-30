@@ -89,6 +89,8 @@ int cqs[CIRC_QUE_SIZE],cqe[CIRC_QUE_SIZE];
 const int dy[] = {1,0,-1,0};
 const int dx[] = {0,1,0,-1};
 
+int nProcessed;
+
 namespace bidirectional_dijkstra {
 	int Fdist[SIZE];
 	int Bdist[SIZE];
@@ -113,9 +115,9 @@ namespace bidirectional_dijkstra {
 	#define UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index)\
 			int w = grid[ny][nx];\
 			int alt = DIST1[uIndex] + w;\
-			if (alt < DIST1[getIndex(ny,nx)]) {\
-				DIST1[getIndex(ny,nx)] = alt;\
-				minDist = min(minDist, DIST1[uIndex] + DIST2[getIndex(ny,nx)]);\
+			if (alt < DIST1[nI]) {\
+				DIST1[nI] = alt;\
+				minDist = min(minDist, DIST1[uIndex] + DIST2[nI]);\
 				int newIndex = que1Index + w;\
 				if (newIndex>=CIRC_QUE_SIZE) newIndex-=CIRC_QUE_SIZE;\
 				QUE1[newIndex].push_front(make_pair(alt,make_pair(ny,nx))); \
@@ -124,40 +126,39 @@ namespace bidirectional_dijkstra {
 
 	#define RELAX(QUE1, QUE2, DIST1, DIST2, U1, minDist, que1Elements, que2Elements, que1Index, que2Index) \
 		{\
-			int que1TopWeight=0, que2TopWeight=0;\
-			while (QUE1[que1Index].empty()) {\
-				++que1Index;\
-				if (que1Index == CIRC_QUE_SIZE) que1Index = 0;\
-			}\
 			pair<int, int > u = move(QUE1[que1Index].front().second);\
-			{\
-				while (QUE2[que2Index].empty()) {\
-					++que2Index;\
-					if (que2Index == CIRC_QUE_SIZE) que2Index = 0;\
-				} \
-			}\
-			que1TopWeight = QUE1[que1Index].front().first;\
-			que2TopWeight = QUE2[que2Index].front().first;\
+			int que1TopWeight = QUE1[que1Index].front().first;\
+			int que2TopWeight = QUE2[que2Index].front().first;\
 			if (que2TopWeight+ que1TopWeight >= minDist) return minDist;\
 			QUE1[que1Index].pop_front();\
 			que1Elements--;\
+			nProcessed++;\
 			int uIndex = getIndex(u.first,u.second);\
 			int ny, nx;\
+			int nI;\
 			ny = u.first+1; nx = u.second;\
 			if (ny < nRows) {\
+				nI = uIndex + nCols;\
 				UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index);\
 			}\
 			ny = u.first-1; nx= u.second;\
 			if (ny >= 0) {\
+				nI = uIndex - nCols;\
 				UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index);\
 			}\
 			ny = u.first; nx = u.second+1;\
 			if (nx < nCols) {\
+				nI = uIndex + 1;\
 				UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index);\
 			}\
 			ny = u.first; nx = u.second-1;\
 			if (nx>=0) {\
+				nI = uIndex - 1;\
 				UPDATE(QUE1, DIST1, DIST2, minDist, que1Elements, que1Index);\
+			}\
+			while (QUE1[que1Index].empty()) {\
+				++que1Index;\
+				if (que1Index == CIRC_QUE_SIZE) que1Index = 0;\
 			}\
 		}\
 
@@ -276,6 +277,7 @@ namespace bidirectional_dijkstra {
 	int bidirectionalDijkstraCrazyQueueCreateNodes(pair<int,int> source, int n,pair<int,int> dest) {
 		///////////////RESET///////////////////////////////////
 		if (source == dest) return grid[source.first][source.second];
+		int start = clock();
 		for(int i=0;i<n;i++) {Fdist[i] = Bdist[i] = INF;}
 		
 		for(int i=0;i<CIRC_QUE_SIZE;i++) {
@@ -297,7 +299,7 @@ namespace bidirectional_dijkstra {
 		Fque[0].push_front(make_pair(grid[0][0],source));
 		Bque[0].push_front(make_pair(grid[dest.first][dest.second],dest));
 		Felements = Belements = 1;
-
+		cerr << "INIt " <<  clock() - start << endl;
 		//////////////////END INSERT //////////////////////////////////
 
 		int ans = INF;
@@ -308,8 +310,12 @@ namespace bidirectional_dijkstra {
 
 		//nProcessed = 0;
 		while (Felements || Belements) {
-			RELAX(Fque,Bque,Fdist,Bdist,Fu,minDist,Felements,Belements,FqueIndex,BqueIndex);
-			RELAX(Bque,Fque,Bdist,Fdist,Bu,minDist,Belements,Felements,BqueIndex,FqueIndex);
+			for(int k=0;k< 10000;k++) {
+				RELAX(Fque,Bque,Fdist,Bdist,Fu,minDist,Felements,Belements,FqueIndex,BqueIndex);
+			}
+			for(int k=0;k < 10000;k++) {
+				RELAX(Bque,Fque,Bdist,Fdist,Bu,minDist,Belements,Felements,BqueIndex,FqueIndex);
+			}
 		}
 
 		return INF;
@@ -379,6 +385,7 @@ int dijkstraCrazyQueueCreateNodes(pair<int,int> source, int n,pair<int,int> dest
 			if (u.first == dest.first && u.second == dest.second) return dist[getIndex(dest.first,dest.second)];
 			int uIndex = getIndex(u.first,u.second);
 			--nElements;
+			++nProcessed;
 
 			int ny, nx;
 			DO_RIGHT;
@@ -416,16 +423,17 @@ int main() {
 				grid[i][j] = input.ReadNext();
 			}
 		}
-		//nProcessed = 0;
+		nProcessed = 0;
 		//cerr << clock() -start << endl;
-		if (false && nCols*nRows < 950000)
+		if (false)
 			cout << dijkstraCrazyQueueCreateNodes(make_pair(0,0), nRows*nCols, make_pair(nRows-1,nCols-1)) << "\n";
 		else {
 			//nTimes++;
 			cout << bidirectional_dijkstra::bidirectionalDijkstraCrazyQueueCreateNodes(make_pair(0,0), nRows*nCols, make_pair(nRows-1,nCols-1)) << "\n";
+			
 			//if (nTimes >= 5) throw -1;
 		}
-		//cerr << "nProcessed " <<  nProcessed << endl;
+		cerr << "nProcessed " <<  nProcessed << endl;
 	}
 	//cout <<grid[0][0] << endl;
 	//output.Flush();
