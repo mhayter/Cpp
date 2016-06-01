@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+//0.040s msb lsb radix sort
 //0.050s vanilla radix sort
 //0.080s fast run preallocate array 10,000,000
 //0.100s fastio
@@ -120,6 +121,52 @@ void radix_sort1(Edge *begin, Edge *end, Edge *begin1) {
     //delete[] begin1;
 }
 
+void _radix_sort_lsb(Edge *begin, Edge *end, Edge *begin1, unsigned maxshift){
+    Edge *end1 = begin1 + (end - begin);
+ 
+    for (unsigned shift = 0; shift <= maxshift; shift += 8)
+    {
+        size_t count[0x100] = {};
+        for (Edge *p = begin; p != end; p++)
+            count[((p->w) >> shift) & 0xFF]++;
+
+        Edge *bucket[0x100], *q = begin1;
+        for (int i = 0; i < 0x100; q += count[i++])
+            bucket[i] = q;
+
+        for (Edge *p = begin; p != end; p++)
+            *bucket[((p->w) >> shift) & 0xFF]++ = *p;
+
+        Edge *temp = begin1;
+        begin1 = begin;
+        begin = temp;
+
+        swap(end, end1);
+    }
+}
+
+void _radix_sort_msb(Edge *begin, Edge *end, Edge *begin1, unsigned shift) {
+    Edge *end1 = begin1 + (end - begin);
+ 
+    size_t count[0x100] = {};
+    for (Edge *p = begin; p != end; p++)
+        count[((p->w) >> shift) & 0xFF]++;
+
+    Edge *bucket[0x100], *obucket[0x100], *q = begin1;
+    for (int i = 0; i < 0x100; q += count[i++])
+        obucket[i] = bucket[i] = q;
+
+    for (Edge *p = begin; p != end; p++)
+        *bucket[((p->w) >> shift) & 0xFF]++ = *p;
+
+    for (int i = 0; i < 0x100; ++i)
+        _radix_sort_lsb(obucket[i], bucket[i], begin + (obucket[i] - begin1), shift - 8);
+}
+
+void radix_sort2(Edge *begin, Edge *end, Edge *begin1) {
+    _radix_sort_msb(begin, end, begin1, 24);
+}
+
 Edge begin1[MAX_EDGES];
 
 int main() {
@@ -142,7 +189,7 @@ int main() {
 		}
 		ini(nCities);
 
-		radix_sort1(edges, edges+nRoads, begin1);
+		radix_sort2(edges, edges+nRoads, begin1);
 
 		int maxW = 0;
 		int nConnected = 0;
