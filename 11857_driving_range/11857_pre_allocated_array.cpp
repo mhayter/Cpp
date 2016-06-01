@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+//0.050s vanilla radix sort
 //0.080s fast run preallocate array 10,000,000
 //0.100s fastio
 //0.280s stdio(false)
@@ -89,8 +90,37 @@ void ini(int n) {
 
 const int INF = 1000000000;
 
-const int MAX_EDGES = 10000000;
+const int MAX_EDGES = 7000000;
 Edge edges[MAX_EDGES];
+
+
+void radix_sort1(Edge *begin, Edge *end, Edge *begin1) {
+    //Edge *begin1 = new Edge[end - begin];
+    Edge *end1 = begin1 + (end - begin);
+
+    for (unsigned shift = 0; shift < 32; shift += 8) {
+        size_t count[0x100] = {};
+        for (Edge *p = begin; p != end; p++)
+            count[((p->w)  >> shift) & 0xFF]++;
+
+        Edge *bucket[0x100], *q = begin1;
+        for (int i = 0; i < 0x100; q += count[i++])
+            bucket[i] = q;
+
+        for (Edge *p = begin; p != end; p++)
+            *bucket[((p->w) >> shift) & 0xFF]++ = *p;
+
+        Edge *temp = begin1;
+        begin1 = begin;
+        begin = temp;
+        //std::swap<Edge*>(begin, begin1);
+        std::swap(end, end1);
+    }
+
+    //delete[] begin1;
+}
+
+Edge begin1[MAX_EDGES];
 
 int main() {
 	int nCities, nRoads; 
@@ -112,7 +142,7 @@ int main() {
 		}
 		ini(nCities);
 
-		sort(edges, edges+nRoads);
+		radix_sort1(edges, edges+nRoads, begin1);
 
 		int maxW = 0;
 		int nConnected = 0;
