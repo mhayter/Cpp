@@ -217,7 +217,7 @@ int main() {
 				//cerr << "sum " << sum << " tot " << tot << endl;
 			}
 		}
-		cout << tot << "\n";
+		cout << tot << endl;
 		if (caseNum != nCases) {
 			reset(); 
 			cout << "\n";
