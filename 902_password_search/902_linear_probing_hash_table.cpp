@@ -8,7 +8,7 @@
 #include <cstdint>
 using namespace std;
 
-//new fastest 0.04s linear probing hashtable mod 16000057 with 1010*1000 unique hashes!
+//new fastest 0.030s linear probing hashtable mod 16000057 with 1010*1000 unique hashes!
 
 namespace HashTable {
 
