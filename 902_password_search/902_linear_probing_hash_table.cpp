@@ -8,7 +8,7 @@
 #include <cstdint>
 using namespace std;
 
-//new fastest 0.060s linear probing hashtable mod 32000011 with 1010*1000 unique hashes!
+//new fastest 0.04s linear probing hashtable mod 16000057 with 1010*1000 unique hashes!
 
 namespace HashTable {
 
@@ -20,7 +20,7 @@ namespace HashTable {
 	unsigned clearHashes[MOST_UNIQUE_HASHES];
 	int clearHashesPlace = 0;
 
-	const int HASH_TABLE_SIZE = 32000011;//64000031;//48000013;//;//16000057
+	const int HASH_TABLE_SIZE = 16000057;//64000031;//48000013;//;//
 	Node hashTable[HASH_TABLE_SIZE];
 
 	int insert(uint64_t num) {
