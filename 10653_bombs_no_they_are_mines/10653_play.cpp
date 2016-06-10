@@ -93,43 +93,6 @@ int MD(int sy, int sx, int ey, int ex) {
 
 const int MY_QUE_SIZE = 2;
 
-
-
-int Astar(int sy, int sx, int ey, int ex) {
-	deque<AstarState> myQue[MY_QUE_SIZE];
-	myQue[0].clear();
-	myQue[1].clear();
-
-	myQue[MD(sy,sx,ey,ex)&1].push_front(AstarState(sy,sx,0, MD(sy,sx,ey,ex)));
-	int nElements  = 1;
-	int myQuePlace = 0;
-	while (nElements) {
-		if (myQue[myQuePlace].size() == 0) myQuePlace ^= 1;
-
-		AstarState temp = myQue[myQuePlace].front(); myQue[myQuePlace].pop_front(); 
-		if (temp.y == ey && temp.x == ex) return temp.depth;
-		ok[temp.y][temp.x] = temp.depth+1;
-
-		for(int i=0;i<4;i++) {
-			int ny = temp.y + dy[i];
-			int nx = temp.x + dx[i];
-
-			if (ny>=0 && nx>=0 && ny<nRows && nx < nCols && ok[ny][nx]==0) {
-				int v1 = temp.depth+1+ MD(ey,ex,ny,nx);
-				if (grid[ny][nx] == 0 || grid[ny][nx] > v1){
-					grid[ny][nx] = v1;
-					if (ny == ey && nx == ex) return temp.depth+1;
-					if (v1 > temp.w) {
-						myQue[myQuePlace^1].push_front(AstarState(ny,nx,temp.depth+1, v1));
-					} else {
-						myQue[myQuePlace].push_front(AstarState(ny,nx,temp.depth+1, v1));
-					}
-				}
-			}
-		}
-	}
-}
-
 AstarState myQue[MY_QUE_SIZE][MAX_ROWS*MAX_COLS+100];
 #define ADJUST\
 		int v1 = temp.depth+1+ MD(ey,ex,ny,nx);\
@@ -141,11 +104,11 @@ AstarState myQue[MY_QUE_SIZE][MAX_ROWS*MAX_COLS+100];
 		}\
 
 
-int qf[2];
+int qf[MY_QUE_SIZE];
 int AstarMinimizeChecks(int sy, int sx, int ey, int ex) {
 	qf[0] = 0;
 	qf[1] = 0;
-
+	if (sy == ey && sx==ex) return 0;
 	myQue[MD(sy,sx,ey,ex)&1][qf[MD(sy,sx,ey,ex)&1]++] = AstarState(sy,sx,0, MD(sy,sx,ey,ex));
 	int nElements  = 1;
 	int myQuePlace = 0;
@@ -155,7 +118,7 @@ int AstarMinimizeChecks(int sy, int sx, int ey, int ex) {
 		AstarState temp = myQue[myQuePlace][--qf[myQuePlace]]; 
 		//cerr << temp.y << " " << temp.x << " " << temp.depth << " " << temp.w << endl;
 		//--nElements;
-		if (temp.y == ey && temp.x == ex) return temp.depth;
+		//if (temp.y == ey && temp.x == ex) return temp.depth;
 		ok[temp.y][temp.x] = temp.depth+1;
 		int ny, nx = temp.x;
 
