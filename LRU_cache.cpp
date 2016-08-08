@@ -5,6 +5,7 @@
 
 using namespace std;
 
+//76ms added splice to get, no diff
 //76ms learned what splice was
 //80ms reuse find iterator
 //92ms list.size bad?
@@ -19,11 +20,9 @@ public:
 		auto findIterator = myMap.find(key);
 		if (findIterator != myMap.end() && findIterator->second.second) {
 			//Bubble;
-			auto newFront (*(findIterator->second.first));
-			myQueue.erase(findIterator->second.first); // just need to move to front not erase
-			myQueue.push_front(newFront);
+			myQueue.splice(myQueue.begin(), myQueue, findIterator->second.first);
 			findIterator->second.first = myQueue.begin();
-			return newFront.second;
+			return myQueue.begin()->second;
 		}
 		return -1;
 	}
@@ -36,8 +35,6 @@ public:
 				myMap[victim.first].second = false;// could actually remove if wanted
 				doFront(key,value);
 			} else {
-				//auto victim = findIterator->second.first;
-				//myQueue.erase(victim);
 				myQueue.splice(myQueue.begin(), myQueue, findIterator->second.first);
 				myQueue.begin()->second = value;
 				findIterator->second.first = myQueue.begin();
@@ -45,8 +42,6 @@ public:
 		} else {
 			auto findIterator = myMap.find(key);
 			if (findIterator != myMap.end() && findIterator->second.second){// in Q
-				//auto victim = findIterator->second.first;
-				//myQueue.erase(victim);
 				myQueue.splice(myQueue.begin(), myQueue, findIterator->second.first);
 				myQueue.begin()->second = value;
 				findIterator->second.first = myQueue.begin();
