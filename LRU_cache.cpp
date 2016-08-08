@@ -5,6 +5,7 @@
 
 using namespace std;
 
+//76ms learned what splice was
 //80ms reuse find iterator
 //92ms list.size bad?
 class LRUCache {
@@ -19,9 +20,9 @@ public:
 		if (findIterator != myMap.end() && findIterator->second.second) {
 			//Bubble;
 			auto newFront (*(findIterator->second.first));
-			myQueue.erase(findIterator->second.first);
+			myQueue.erase(findIterator->second.first); // just need to move to front not erase
 			myQueue.push_front(newFront);
-			myMap[key].first = myQueue.begin();
+			findIterator->second.first = myQueue.begin();
 			return newFront.second;
 		}
 		return -1;
@@ -31,22 +32,30 @@ public:
 			auto findIterator = myMap.find(key);
 			if (!(findIterator != myMap.end() && findIterator->second.second)){ // if not in Q
 				auto victim = move(myQueue.back());
-				myQueue.pop_back();
+				myQueue.pop_back(); //don't need to erase just move pointers
 				myMap[victim.first].second = false;// could actually remove if wanted
+				doFront(key,value);
 			} else {
-				auto victim = findIterator->second.first;
-				myQueue.erase(victim);
+				//auto victim = findIterator->second.first;
+				//myQueue.erase(victim);
+				myQueue.splice(myQueue.begin(), myQueue, findIterator->second.first);
+				myQueue.begin()->second = value;
+				findIterator->second.first = myQueue.begin();
 			}
 		} else {
 			auto findIterator = myMap.find(key);
-			if (findIterator != myMap.end() && findIterator->second.second){
-				auto victim = findIterator->second.first;
-				myQueue.erase(victim);
+			if (findIterator != myMap.end() && findIterator->second.second){// in Q
+				//auto victim = findIterator->second.first;
+				//myQueue.erase(victim);
+				myQueue.splice(myQueue.begin(), myQueue, findIterator->second.first);
+				myQueue.begin()->second = value;
+				findIterator->second.first = myQueue.begin();
 			} else {
 				++myQueueSize;
+				doFront(key,value);
 			}
 		}
-		doFront(key,value);
+		//doFront(key,value);
 	}
 	void doFront(int key, int value) {
 		myQueue.push_front(make_pair(key,value));
