@@ -5,6 +5,7 @@
 
 using namespace std;
 
+//80ms reuse find iterator
 //92ms list.size bad?
 class LRUCache {
 public:
@@ -14,33 +15,32 @@ public:
 		this->myQueueSize = 0;
 	}
 	int get(int key) {
-		if (myMap.count(key)) {
-			if (myMap[key].second) {
-				//Bubble;
-				auto newFront (*(myMap[key].first));
-				myQueue.erase(myMap[key].first);
-				myQueue.push_front(newFront);
-				myMap[key].first = myQueue.begin();
-				return newFront.second;
-			} else {
-				return -1;
-			}
+		auto findIterator = myMap.find(key);
+		if (findIterator != myMap.end() && findIterator->second.second) {
+			//Bubble;
+			auto newFront (*(findIterator->second.first));
+			myQueue.erase(findIterator->second.first);
+			myQueue.push_front(newFront);
+			myMap[key].first = myQueue.begin();
+			return newFront.second;
 		}
 		return -1;
 	}
 	void set(int key, int value) {
 		if (myQueueSize == capacity) {
-			if (!(myMap.count(key) && myMap[key].second)){ // if not in Q
-				auto victim = myQueue.back();
+			auto findIterator = myMap.find(key);
+			if (!(findIterator != myMap.end() && findIterator->second.second)){ // if not in Q
+				auto victim = move(myQueue.back());
 				myQueue.pop_back();
 				myMap[victim.first].second = false;// could actually remove if wanted
 			} else {
-				auto victim = myMap[key].first;
+				auto victim = findIterator->second.first;
 				myQueue.erase(victim);
 			}
 		} else {
-			if (myMap.count(key) && myMap[key].second){
-				auto victim = myMap[key].first;
+			auto findIterator = myMap.find(key);
+			if (findIterator != myMap.end() && findIterator->second.second){
+				auto victim = findIterator->second.first;
 				myQueue.erase(victim);
 			} else {
 				++myQueueSize;
