@@ -5,6 +5,7 @@
 
 using namespace std;
 
+//92ms list.size bad?
 class LRUCache {
 public:
 	LRUCache(int capacity)
